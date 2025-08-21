@@ -16,7 +16,6 @@ class Omega1Result:
     witness_path: Optional[List[int]] = None
 
 def read_dimacs(path: str) -> CNF:
-    """Minimal DIMACS CNF loader. Lines end with a trailing 0."""
     F: CNF = []
     with open(path, "r", encoding="utf-8", errors="ignore") as fh:
         for line in fh:
@@ -91,7 +90,7 @@ def detect_omega1(F: CNF) -> Omega1Result:
     reasons.append("no contradiction found via unit propagation")
     return Omega1Result(is_omega1=False, reasons=reasons, witness_path=[])
 
-# Fixtures for the “Run Fixtures” tab
+# Fixtures used by the UI
 def F_prime() -> CNF:
     return [(1,), (-1, 2), (1, -2)]
 
