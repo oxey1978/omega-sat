@@ -1,3 +1,4 @@
+# omega1_detector_ref.py
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
@@ -15,7 +16,7 @@ class Omega1Result:
     witness_path: Optional[List[int]] = None
 
 def read_dimacs(path: str) -> CNF:
-    """Very small DIMACS CNF loader."""
+    """Minimal DIMACS CNF loader. Lines end with a trailing 0."""
     F: CNF = []
     with open(path, "r", encoding="utf-8", errors="ignore") as fh:
         for line in fh:
@@ -30,16 +31,69 @@ def read_dimacs(path: str) -> CNF:
             F.append(tuple(nums[:-1]))
     return F
 
-def detect_omega1(F: CNF) -> Omega1Result:
-    """Placeholder — replace with your real Ω1 detector later."""
-    return Omega1Result(
-        is_omega1=False,
-        reasons=["placeholder Ω1 detector — replace with real implementation"]
-    )
+def _has_empty_clause(F: CNF) -> bool:
+    return any(len(c) == 0 for c in F)
 
-# Tiny fixture generators (toy CNFs)
+def _simplify(F: CNF, lit: int):
+    new_F: CNF = []
+    for clause in F:
+        if lit in clause:
+            continue
+        new_clause = tuple(x for x in clause if x != -lit)
+        if len(new_clause) == 0:
+            return new_F, True
+        new_F.append(new_clause)
+    return new_F, False
+
+def _unit_propagate(F: CNF):
+    path: List[int] = []
+    depth = 0
+    while True:
+        units = [c[0] for c in F if len(c) == 1]
+        if not units:
+            return False, path, None, depth
+        lit = units[0]
+        path.append(lit)
+        depth += 1
+        F, made_empty = _simplify(F, lit)
+        if made_empty:
+            return True, path, lit, depth
+
+def detect_omega1(F: CNF) -> Omega1Result:
+    reasons: List[str] = []
+
+    if _has_empty_clause(F):
+        reasons.append("formula already contains an empty clause")
+        return Omega1Result(
+            is_omega1=True,
+            witness_seed=None,
+            witness_literal=None,
+            witness_depth=0,
+            conflict_kind="empty_clause",
+            reasons=reasons,
+            witness_path=[]
+        )
+
+    conflict, path, last_lit, depth = _unit_propagate([tuple(c) for c in F])
+    if conflict:
+        seed_var = abs(path[0]) if path else None
+        reasons.append("unit propagation derives a contradiction (empty clause)")
+        return Omega1Result(
+            is_omega1=True,
+            witness_seed=seed_var,
+            witness_literal=last_lit,
+            witness_depth=depth,
+            conflict_kind="unit_conflict",
+            reasons=reasons,
+            witness_path=path
+        )
+
+    reasons.append("no contradiction found via unit propagation")
+    return Omega1Result(is_omega1=False, reasons=reasons, witness_path=[])
+    
+# Tiny fixtures (for the UI tab)
 def F_prime() -> CNF:
-    return [(1, 2), (-1, 2), (1, -2)]
+    return [(1,), (-1, 2), (1, -2)]
 
 def F_doubleprime() -> CNF:
     return [(1, 2, 3), (-1, 2), (1, -2), (3, -1)]
