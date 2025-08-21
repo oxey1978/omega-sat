@@ -1,3 +1,4 @@
+# redeploy
 import streamlit as st
 
 # --- Local detectors (Omega-1 required, Omega-2 optional) ---
