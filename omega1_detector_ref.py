@@ -90,8 +90,8 @@ def detect_omega1(F: CNF) -> Omega1Result:
 
     reasons.append("no contradiction found via unit propagation")
     return Omega1Result(is_omega1=False, reasons=reasons, witness_path=[])
-    
-# Tiny fixtures (for the UI tab)
+
+# Fixtures for the “Run Fixtures” tab
 def F_prime() -> CNF:
     return [(1,), (-1, 2), (1, -2)]
 
