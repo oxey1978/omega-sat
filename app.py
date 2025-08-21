@@ -2,7 +2,7 @@
 import streamlit as st
 
 # --- Local detectors (Omega-1 required, Omega-2 optional) ---
-from omega1_detector_ref import (
+from omega1_detector_ref2 import (
     detect_omega1, read_dimacs,
     F_prime, F_doubleprime, F_tripleprime, F_hex
 )
